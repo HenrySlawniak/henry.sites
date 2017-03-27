@@ -2,7 +2,9 @@
 
 mkdir -p bin/
 
-go get -v
+go get
+go get -v github.com/mjibson/esc
+go generate
 
 for target in windows:amd64 linux:amd64 darwin:amd64 linux:386 linux:arm; do
   echo "Compiling $target"
@@ -12,5 +14,5 @@ for target in windows:amd64 linux:amd64 darwin:amd64 linux:386 linux:arm; do
   then
     OUT="$OUT.exe"
   fi
-  bash -c "go build -ldflags '-w -X main.buildTime=$(date +'%Y.%m.%d.%H%M%S') -X main.commit=$(git describe --always --dirty=*)' -v -o $OUT ."
+  bash -c "go build -ldflags '-w -X main.buildTime=$(date +'%b-%d-%Y-%H:%M:%S') -X main.commit=$(git describe --always --dirty=*)' -v -o $OUT ."
 done

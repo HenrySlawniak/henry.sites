@@ -21,39 +21,59 @@
 package main
 
 import (
+	"crypto/sha512"
+	"fmt"
 	"github.com/go-playground/log"
-	"github.com/gorilla/mux"
+	"io/ioutil"
+	"mime"
 	"net/http"
+	"path/filepath"
+	"time"
 )
 
-var router *mux.Router
+//go:generate esc -o esc.go -prefix "client/" client
 
-func setupRouter() {
-	log.Info("Setting up router")
-	router = mux.NewRouter()
-	router.StrictSlash(true)
-	router.NotFoundHandler = notFoundHandler()
-	addRoutes()
+var fs = FS(false)
+
+func serveFile(w http.ResponseWriter, r *http.Request, path string) {
+	if path == "/" {
+		path = "/index.html"
+	}
+	content, sum, mod, err := readFile(path)
+	if err != nil {
+		http.Error(w, "Could not read file", http.StatusInternalServerError)
+		log.Errorf("%s:%s\n", path, err.Error())
+		return
+	}
+	mime := mime.TypeByExtension(filepath.Ext(path))
+	w.Header().Set("Content-Type", mime)
+	w.Header().Set("Cache-Control", "public, no-cache")
+	w.Header().Set("Last-Modified", mod.Format(time.RFC1123))
+	if r.Header.Get("If-None-Match") == sum {
+		w.WriteHeader(http.StatusNotModified)
+		w.Header().Set("ETag", sum)
+		return
+	}
+	w.Header().Set("ETag", sum)
+	w.Write(content)
 }
 
-func addRoutes() {
-	log.Info("Adding routes to router")
-	router.PathPrefix("/").HandlerFunc(indexHandler())
-}
+func readFile(path string) ([]byte, string, time.Time, error) {
+	f, err := fs.Open(path)
+	if err != nil {
+		return nil, "", time.Now(), err
+	}
+	defer f.Close()
 
-func notFoundHandler() http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		serveFile(w, r, "/404.html")
-	})
-}
+	stat, err := f.Stat()
+	if err != nil {
+		return nil, "", time.Now(), err
+	}
 
-func indexHandler() http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		path := r.URL.Path
-		if _, err := fs.Open(path); err == nil {
-			serveFile(w, r, path)
-		} else {
-			serveFile(w, r, "/index.html")
-		}
-	})
+	cont, err := ioutil.ReadAll(f)
+	if err != nil {
+		return nil, "", time.Now(), err
+	}
+
+	return cont, fmt.Sprintf("%x", sha512.Sum512(cont)), stat.ModTime(), nil
 }
