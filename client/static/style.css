@@ -4,8 +4,14 @@ html, body {
   margin: 0;
 }
 
+html {
+  background: #00838F;
+}
+
 body {
   font-family: 'Josefin Sans', sans-serif;
+  position: relative;
+  background: #EEEEEE;
 }
 
 h1, h2, h3, h4, h5, h6 {

@@ -56,7 +56,7 @@ func main() {
 	if *devMode {
 		srv := &http.Server{
 			Addr:    ":34265",
-			Handler: router,
+			Handler: mux,
 		}
 
 		log.Info("Listening on :34265")
@@ -84,7 +84,7 @@ func main() {
 	rootSrv := &http.Server{
 		Addr:      ":https",
 		TLSConfig: &tls.Config{GetCertificate: m.GetCertificate},
-		Handler:   router,
+		Handler:   mux,
 	}
 
 	log.Info("Listening on :https")

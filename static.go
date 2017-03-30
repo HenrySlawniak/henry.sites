@@ -23,7 +23,6 @@ package main
 import (
 	"crypto/md5"
 	"fmt"
-	"github.com/go-playground/log"
 	"io/ioutil"
 	"mime"
 	"net/http"
@@ -33,13 +32,13 @@ import (
 )
 
 func serveFile(w http.ResponseWriter, r *http.Request, path string) {
-	if path == "/" {
+	if path == "./client/" {
 		path = "./client/index.html"
 	}
 	content, sum, mod, err := readFile(path)
 	if err != nil {
 		http.Error(w, "Could not read file", http.StatusInternalServerError)
-		log.Errorf("%s:%s\n", path, err.Error())
+		fmt.Printf("%s:%s\n", path, err.Error())
 		return
 	}
 	mime := mime.TypeByExtension(filepath.Ext(path))
