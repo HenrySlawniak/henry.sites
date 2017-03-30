@@ -34,12 +34,6 @@ func setupRouter() {
 	mux.HandleFunc("/", indexHandler())
 }
 
-func notFoundHandler() http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		serveFile(w, r, "/404.html")
-	})
-}
-
 func indexHandler() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
