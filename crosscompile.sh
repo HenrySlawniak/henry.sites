@@ -3,8 +3,6 @@
 mkdir -p bin/
 
 go get
-go get -v github.com/mjibson/esc
-go generate
 
 for target in windows:amd64 linux:amd64 darwin:amd64 linux:386 linux:arm; do
   echo "Compiling $target"

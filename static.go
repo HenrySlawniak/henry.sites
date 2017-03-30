@@ -27,17 +27,14 @@ import (
 	"io/ioutil"
 	"mime"
 	"net/http"
+	"os"
 	"path/filepath"
 	"time"
 )
 
-//go:generate esc -o esc.go -prefix "client/" client
-
-var fs = FS(false)
-
 func serveFile(w http.ResponseWriter, r *http.Request, path string) {
 	if path == "/" {
-		path = "/index.html"
+		path = "./client/index.html"
 	}
 	content, sum, mod, err := readFile(path)
 	if err != nil {
@@ -59,7 +56,7 @@ func serveFile(w http.ResponseWriter, r *http.Request, path string) {
 }
 
 func readFile(path string) ([]byte, string, time.Time, error) {
-	f, err := fs.Open(path)
+	f, err := os.Open(path)
 	if err != nil {
 		return nil, "", time.Now(), err
 	}

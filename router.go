@@ -24,6 +24,7 @@ import (
 	"github.com/go-playground/log"
 	"github.com/gorilla/mux"
 	"net/http"
+	"os"
 )
 
 var router *mux.Router
@@ -50,10 +51,10 @@ func notFoundHandler() http.HandlerFunc {
 func indexHandler() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
-		if _, err := fs.Open(path); err == nil {
+		if _, err := os.Open(path); err == nil {
 			serveFile(w, r, path)
 		} else {
-			serveFile(w, r, "/index.html")
+			serveFile(w, r, "./client/index.html")
 		}
 	})
 }
