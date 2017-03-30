@@ -21,7 +21,7 @@
 package main
 
 import (
-	"crypto/sha512"
+	"crypto/md5"
 	"fmt"
 	"github.com/go-playground/log"
 	"io/ioutil"
@@ -72,5 +72,5 @@ func readFile(path string) ([]byte, string, time.Time, error) {
 		return nil, "", time.Now(), err
 	}
 
-	return cont, fmt.Sprintf("%x", sha512.Sum512(cont)), stat.ModTime(), nil
+	return cont, fmt.Sprintf("%x", md5.Sum(cont)), stat.ModTime(), nil
 }
