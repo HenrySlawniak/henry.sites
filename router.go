@@ -31,18 +31,17 @@ var mux *http.ServeMux
 func setupRouter() {
 	log.Info("Setting up router")
 	mux = http.NewServeMux()
-	mux.HandleFunc("/", indexHandler())
+	mux.HandleFunc("/", indexHandler)
 }
 
-func indexHandler() http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		path := r.URL.Path
-		log.Debug(path)
-		if _, err := os.Stat("./client" + path); err == nil {
-			serveFile(w, r, "./client"+path)
-		} else {
-			log.Debug(path, " not found redirecting to index.")
-			serveFile(w, r, "./client/index.html")
-		}
-	})
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	path := r.URL.Path
+	log.Debug(path)
+
+	if _, err := os.Stat("./client" + path); err == nil {
+		serveFile(w, r, "./client"+path)
+	} else {
+		log.Debug(path, " not found redirecting to index.")
+		serveFile(w, r, "./client/index.html")
+	}
 }
