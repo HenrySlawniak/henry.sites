@@ -53,9 +53,10 @@ func serveFile(w http.ResponseWriter, r *http.Request, path string) {
 	w.Header().Set("Vary", "Accept-Encoding")
 
 	var (
-		sum     string
-		content []byte
-		mod     time.Time
+		sum      string
+		content  []byte
+		mod      time.Time
+		mimeType = mime.TypeByExtension(filepath.Ext(path))
 	)
 
 	fileSum := sums[path]
@@ -66,9 +67,11 @@ func serveFile(w http.ResponseWriter, r *http.Request, path string) {
 			log.Errorf("%s:%s\n", path, err.Error())
 			return
 		}
-		w.Write(content)
+
+		writeToResponse(w, r, content, mimeType, sum, mod)
 		return
 	}
+
 	if fileSum.Time.Add(time.Hour).Unix() > time.Now().Unix() {
 		content, sum, mod, err = readFile(path)
 		if err != nil {
@@ -91,12 +94,6 @@ func serveFile(w http.ResponseWriter, r *http.Request, path string) {
 		// }
 	}
 
-	mime := mime.TypeByExtension(filepath.Ext(path))
-	w.Header().Set("Content-Type", mime)
-	w.Header().Set("Cache-Control", "public")
-	w.Header().Set("Last-Modified", mod.Format(time.RFC1123))
-	w.Header().Set("Expires", mod.Add((24*365)*time.Hour).Format(time.RFC1123))
-	w.Header().Set("ETag", sum)
 	if r.Header.Get("If-None-Match") == sum {
 		w.WriteHeader(http.StatusNotModified)
 		return
@@ -108,8 +105,23 @@ func serveFile(w http.ResponseWriter, r *http.Request, path string) {
 		log.Errorf("%s:%s\n", path, err.Error())
 		return
 	}
-	w.Write(content)
+
+	writeToResponse(w, r, content, mimeType, sum, mod)
 	return
+}
+
+func writeToResponse(w http.ResponseWriter, r *http.Request, content []byte, mime, sum string, mod time.Time) {
+	w.Header().Set("Content-Type", mime)
+	w.Header().Set("Cache-Control", "public")
+	w.Header().Set("Last-Modified", mod.Format(time.RFC1123))
+	w.Header().Set("Expires", mod.Add((24*365)*time.Hour).Format(time.RFC1123))
+	w.Header().Set("ETag", sum)
+	if r.Header.Get("If-None-Match") == sum {
+		w.WriteHeader(http.StatusNotModified)
+		return
+	}
+
+	w.Write(content)
 }
 
 func readFile(path string) ([]byte, string, time.Time, error) {
