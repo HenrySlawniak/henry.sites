@@ -3,3 +3,4 @@ bin/*
 config.json
 download/*
 .secret
+domains.txt

@@ -21,24 +21,29 @@
 package main
 
 import (
+	"bufio"
 	"crypto/tls"
 	"flag"
 	"github.com/go-playground/log"
 	"github.com/go-playground/log/handlers/console"
 	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/net/http2"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
 
 var (
 	devMode      = flag.Bool("dev", false, "Puts the server in developer mode, will bind to :34265 and will not autocert")
-	domains      = flag.String("domain", "henry.slawniak.com", "A comma-seperaated list of domains to get a certificate for.")
 	cookieSecret string
 	buildTime    string
 	commit       string
 )
+
+var domainList = []string{}
+var m autocert.Manager
 
 func init() {
 	flag.Parse()
@@ -53,22 +58,19 @@ func main() {
 	log.Info("Revision: " + commit)
 	setupRouter()
 
+	loadDomainList()
+
 	if *devMode {
 		srv := &http.Server{
 			Addr:    ":34265",
-			Handler: mux,
+			Handler: router,
 		}
 
 		log.Info("Listening on :34265")
 		srv.ListenAndServe()
 	}
 
-	domainList := strings.Split(*domains, ",")
-	for i, d := range domainList {
-		domainList[i] = strings.TrimSpace(d)
-	}
-
-	m := autocert.Manager{
+	m = autocert.Manager{
 		Prompt:     autocert.AcceptTOS,
 		HostPolicy: autocert.HostWhitelist(domainList...),
 		Cache:      autocert.DirCache("certs"),
@@ -84,7 +86,7 @@ func main() {
 	rootSrv := &http.Server{
 		Addr:      ":https",
 		TLSConfig: &tls.Config{GetCertificate: m.GetCertificate},
-		Handler:   mux,
+		Handler:   router,
 	}
 
 	log.Info("Listening on :https")
@@ -94,5 +96,53 @@ func main() {
 }
 
 func httpRedirectHandler(w http.ResponseWriter, r *http.Request) {
+	if !domainExists(r.Host) {
+		addToDomainList(r.Host)
+	}
 	http.Redirect(w, r, "https://"+r.Host+r.URL.String(), http.StatusMovedPermanently)
+}
+
+func domainExists(domain string) bool {
+	for _, d := range domainList {
+		if d == domain {
+			return true
+		}
+	}
+	return false
+}
+
+func addToDomainList(domain string) {
+	for _, d := range domainList {
+		if d == domain {
+			return
+		}
+	}
+	domainList = append(domainList, domain)
+
+	err := ioutil.WriteFile("domains.txt", []byte(strings.Join(domainList, "\n")), os.ModeAppend)
+	if err != nil {
+		log.Fatal(err)
+		panic(err)
+	}
+
+	autocert.HostWhitelist(domainList...)
+}
+
+func loadDomainList() {
+	f, err := os.Open("domains.txt")
+	if err != nil {
+		log.Fatal(err)
+		panic(err)
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	if err != nil {
+		log.Fatal(err)
+		panic(err)
+	}
+
+	for scanner.Scan() {
+		addToDomainList(scanner.Text())
+	}
 }

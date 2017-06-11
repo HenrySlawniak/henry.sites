@@ -3,15 +3,45 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width">
-  <link rel="manifest" href="/manifest.json" />
-  <meta name="theme-color" content="#00BCD4" id="theme" />
-  <link rel="icon" href="/static/icon-256.png">
-  <title>henry.slawniak.com</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The henry.* network</title>
   <link defer rel="stylesheet" href="/static/style.css" />
 </head>
 
 <body>
+  <div class="container">
+    <h1><p class="fancy"><span>Welcome to henry.*</span></p></h1>
+    <div class="content"><video src="/static/nosauce.webm" controls loop></video></div>
+    <div class="card">
+      <a href="http://henry.directory">henry.directory</a>
+      <a href="http://henry.management">henry.management</a>
+      <a href="http://henry.network">henry.network</a>
+      <a href="http://henry.pictures">henry.pictures</a>
+      <a href="http://henry.tools">henry.tools</a>
+    </div>
+  </div>
+  <script defer>
+    document.addEventListener("DOMContentLoaded", _ => {
+      var vid = document.querySelector("video");
+      window.requestAnimationFrame(_ => {
+        vid.volume = 0.1;
+        vid.play();
+        vid.onclick = function (){
+          if (vid.paused) {
+            vid.play();
+          }
+          else {
+            vid.pause();
+          }
+        }
+      });
+    });
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+  </script>
 </body>
 
 </html>

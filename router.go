@@ -22,26 +22,31 @@ package main
 
 import (
 	"github.com/go-playground/log"
+	"github.com/gorilla/mux"
 	"net/http"
 	"os"
 )
 
-var mux *http.ServeMux
+var router *mux.Router
 
 func setupRouter() {
 	log.Info("Setting up router")
-	mux = http.NewServeMux()
-	mux.HandleFunc("/", indexHandler)
+	router = mux.NewRouter()
+	router.HandleFunc("/", indexHandler)
+
+	slawniakComRouter := mux.NewRouter()
+	slawniakComRouter.StrictSlash(true)
+	slawniakComRouter.HandleFunc("/", indexHandler)
+	router.PathPrefix("slawniak.com").Handler(slawniakComRouter)
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
-	log.Debug(path)
 
+	log.Debug(path)
 	if _, err := os.Stat("./client" + path); err == nil {
 		serveFile(w, r, "./client"+path)
 	} else {
-		log.Debug(path, " not found redirecting to index.")
 		serveFile(w, r, "./client/index.html")
 	}
 }

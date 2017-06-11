@@ -1,19 +1,101 @@
-@import url('https://fonts.googleapis.com/css?family=Josefin+Sans|Lato:300');
+@import url('https://fonts.googleapis.com/css?family=Lato');
 html, body {
-  min-height: 100vh;
   margin: 0;
+  padding: 0;
+  background: #000;
+  font-family: 'Lato', 'Arial', sans-serif;
+  font-size: 20px;
+  color: #fff;
 }
 
-html {
-  background: #00838F;
+* {
+  box-sizing: border-box;
 }
 
-body {
-  font-family: 'Josefin Sans', sans-serif;
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  opacity: 0;
+  animation: fadeIn .75s ease-out 1 forwards;
+}
+
+.is-paused {
+  animation-play-state: paused;
+}
+
+.fancy {
+  line-height: 0.5;
+  text-align: center;
+}
+
+.fancy span {
+  display: inline-block;
   position: relative;
-  background: #EEEEEE;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Lato', sans-serif;
+.fancy span:before, .fancy span:after {
+  content: "";
+  position: absolute;
+  height: 50%;
+  border-bottom: 3px solid white;
+  top: 0;
+  max-width: 100px;
+  width: 100%;
+}
+
+.fancy span:before {
+  right: 100%;
+  margin-right: 15px;
+}
+
+.fancy span:after {
+  left: 100%;
+  margin-left: 15px;
+}
+
+.container {
+  width: 100%;
+  max-width: 950px;
+  padding: 16px;
+  margin: 0 auto;
+}
+
+div.content {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.card {
+  background: #101010;
+  border-radius: 3px;
+  box-shadow: 0 3px 4px rgba(0, 0, 0, 0.3);
+  margin: 20px 0;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+a {
+  color: #3498db;
+  text-decoration: none !important;
+}
+
+a:visited {
+  color: #3498db;
+}
+
+a:hover {
+  color: #2980b9;
+}
+
+svg {
+  color: #000;
+  fill: #000;
+  stroke: #000;
 }
