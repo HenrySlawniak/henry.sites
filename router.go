@@ -32,18 +32,35 @@ var router *mux.Router
 func setupRouter() {
 	log.Info("Setting up router")
 	router = mux.NewRouter()
-	router.HandleFunc("/", indexHandler)
 
-	slawniakComRouter := mux.NewRouter()
-	slawniakComRouter.StrictSlash(true)
-	slawniakComRouter.HandleFunc("/", indexHandler)
-	router.PathPrefix("slawniak.com").Handler(slawniakComRouter)
+	slawniakComRouter := router.Host("slawniak.com").PathPrefix("/").Name("slawniak.com").Subrouter()
+	slawniakComRouter.PathPrefix("/").HandlerFunc(indexHandler)
+
+	router.Host("ifcfg.org").Name("ifcfg.org").PathPrefix("/").HandlerFunc(rootHandler)
+	router.Host("v4.ifcfg.org").Name("ifcfg.org-v4").PathPrefix("/").HandlerFunc(rootHandler)
+	router.Host("v6.ifcfg.org").Name("ifcfg.org-v6").PathPrefix("/").HandlerFunc(rootHandler)
+
+	router.PathPrefix("/").HandlerFunc(indexHandler).Name("catch-all")
+
+	router.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
+		name := route.GetName()
+		host, _ := route.GetHostTemplate()
+		path, _ := route.GetPathTemplate()
+		log.Debug("name", name)
+		log.Debug("host", host)
+		log.Debug("path", path)
+		log.Debug()
+		return nil
+	})
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
 
-	log.Debug(path)
+	if !domainExists(r.URL.Hostname()) {
+		addToDomainList(r.URL.Hostname())
+	}
+
 	if _, err := os.Stat("./client" + path); err == nil {
 		serveFile(w, r, "./client"+path)
 	} else {

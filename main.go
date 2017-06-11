@@ -89,6 +89,14 @@ func main() {
 		Handler:   router,
 	}
 
+	// This is awful
+	go func() {
+		time.Sleep(500 * time.Millisecond)
+		for _, d := range domainList {
+			http.Get("http://" + d)
+		}
+	}()
+
 	log.Info("Listening on :https")
 
 	http2.ConfigureServer(rootSrv, &http2.Server{})
@@ -96,8 +104,8 @@ func main() {
 }
 
 func httpRedirectHandler(w http.ResponseWriter, r *http.Request) {
-	if !domainExists(r.Host) {
-		addToDomainList(r.Host)
+	if !domainExists(r.URL.Hostname()) {
+		addToDomainList(r.URL.Hostname())
 	}
 	http.Redirect(w, r, "https://"+r.Host+r.URL.String(), http.StatusMovedPermanently)
 }

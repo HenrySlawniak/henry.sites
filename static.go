@@ -83,11 +83,12 @@ func serveFile(w http.ResponseWriter, r *http.Request, path string) {
 	}
 
 	if strings.Contains(path, ".html") {
-		if pusher, ok := w.(http.Pusher); ok {
-			if err := pusher.Push("/static/style.css", nil); err != nil {
-				log.Warnf("Failed to push: %v", err)
-			}
-		}
+		// Disable the pusher for now TODO: figure out a way to do pushing per site
+		// if pusher, ok := w.(http.Pusher); ok {
+		// 	if err := pusher.Push("/static/style.css", nil); err != nil {
+		// 		log.Warnf("%v, %s, Failed to push: %v", r.URL, r.RemoteAddr, err)
+		// 	}
+		// }
 	}
 
 	mime := mime.TypeByExtension(filepath.Ext(path))
