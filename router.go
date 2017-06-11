@@ -41,17 +41,6 @@ func setupRouter() {
 	router.Host("v6.ifcfg.org").Name("ifcfg.org-v6").PathPrefix("/").HandlerFunc(rootHandler)
 
 	router.PathPrefix("/").HandlerFunc(indexHandler).Name("catch-all")
-
-	router.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
-		name := route.GetName()
-		host, _ := route.GetHostTemplate()
-		path, _ := route.GetPathTemplate()
-		log.Debug("name", name)
-		log.Debug("host", host)
-		log.Debug("path", path)
-		log.Debug()
-		return nil
-	})
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
