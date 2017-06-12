@@ -73,16 +73,14 @@ func serveFile(w http.ResponseWriter, r *http.Request, path string) {
 	}
 
 	if fileSum.Time.Add(time.Hour).Unix() > time.Now().Unix() {
-		content, sum, mod, err = readFile(path)
+		_, sum, _, err = readFile(path)
 		if err != nil {
 			http.Error(w, "Could not read file", http.StatusInternalServerError)
 			log.Errorf("%s:%s\n", path, err.Error())
 			return
 		}
 	} else {
-		content = []byte{}
 		sum = fileSum.Sum
-		mod = fileSum.Modified
 	}
 
 	if strings.Contains(path, ".html") {
