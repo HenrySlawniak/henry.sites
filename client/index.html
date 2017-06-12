@@ -11,23 +11,28 @@
 <body>
   <div class="container">
     <h1>Welcome to henry.*</h1>
-    <video src="/static/nosauce.webm" controls loop></video>
+    <div>
+      <video src="/static/nosauce.webm" controls loop></video>
+    </div>
     <div class="card">
-      <div>
         <a href="http://henry.directory">henry.directory</a>
         <a href="http://henry.management">henry.management</a>
         <a href="http://henry.network">henry.network</a>
         <a href="http://henry.pictures">henry.pictures</a>
         <a href="http://henry.tools">henry.tools</a>
         <a href="http://henry.domains">henry.domains</a>
-      </div>
+        <a href="http://henry.camera">henry.camera</a>
+        <a href="http://henry.computer">henry.computer</a>
+        <a href="http://henry.photography">henry.photography</a>
+        <a href="http://henry.supplies">henry.supplies</a>
+        <a href="http://henry.supply">henry.supply</a>
     </div>
   </div>
   <script defer>
     document.addEventListener("DOMContentLoaded", _ => {
       var vid = document.querySelector("video");
       window.requestAnimationFrame(_ => {
-        vid.volume = 0.1;
+        vid.volume = 0.01;
         vid.play();
         vid.onclick = function (){
           if (vid.paused) {
@@ -39,11 +44,6 @@
         }
       });
     });
-
-    function sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
   </script>
 </body>
 

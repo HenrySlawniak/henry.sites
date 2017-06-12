@@ -1,19 +1,33 @@
-@import url('https://fonts.googleapis.com/css?family=Lato');
+/*@import url('https://fonts.googleapis.com/css?family=Montserrat|Raleway&subset=latin-ext');*/
+
 html, body {
+  min-height: 100vh;
   margin: 0;
-  padding: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
   background: #111;
-  font-family: 'Lato', 'Arial', sans-serif;
-  font-size: 20px;
   color: #fff;
-  text-align: center;
+  font-family: 'Raleway', sans-serif;
+  font-size: large;
+}
+
+html {
+  background: #FFF176;
 }
 
 * {
   box-sizing: border-box;
 }
 
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Montserrat', sans-serif;
+}
+
 .container {
+  align-items: center;
   width: 100%;
   max-width: 950px;
   padding: 1rem;
@@ -25,20 +39,14 @@ html, body {
 .card {
   width: 100%;
   margin-top: 0.5rem;
-  background: #333;
+  background: #222;
   border-radius: 3px;
   padding: 2rem;
   min-height: 2rem;
   align-items: center;
   display: flex;
-  flex-direction: row;
-  flex-shrink: 1;
-  justify-content: space-around;
-}
-
-.card a {
-  margin: 0.125rem;
-  display: inline-block;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 a {
