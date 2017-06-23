@@ -51,9 +51,14 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		addToDomainList(r.URL.Hostname())
 	}
 
-	if _, err := os.Stat("./client" + path); err == nil {
-		serveFile(w, r, "./client"+path)
+	staticFolder := "./sites/" + r.Host
+	if _, err := os.Stat(staticFolder); err != nil {
+		staticFolder = "./client"
+	}
+
+	if _, err := os.Stat(staticFolder + path); err == nil {
+		serveFile(w, r, staticFolder+path)
 	} else {
-		serveFile(w, r, "./client/index.html")
+		serveFile(w, r, staticFolder+"/index.html")
 	}
 }
