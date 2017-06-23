@@ -56,7 +56,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		staticFolder = "./client"
 	}
 
-	if _, err := os.Stat(staticFolder + path); err == nil {
+	if inf, err := os.Stat(staticFolder + path); err == nil && !inf.IsDir() {
 		serveFile(w, r, staticFolder+path)
 	} else {
 		serveFile(w, r, staticFolder+"/index.html")
