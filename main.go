@@ -104,6 +104,7 @@ func main() {
 }
 
 func httpRedirectHandler(w http.ResponseWriter, r *http.Request) {
+	log.Debug(r.URL.Host)
 	go addToDomainList(r.URL.Hostname())
 	http.Redirect(w, r, "https://"+r.Host+r.URL.String(), http.StatusMovedPermanently)
 }
