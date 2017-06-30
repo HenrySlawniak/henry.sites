@@ -120,8 +120,11 @@ func domainExists(domain string) bool {
 }
 
 func addToDomainList(domain string) {
+	log.Debugf("Adding %s to domain list\n", domain)
+	log.Debugf("There are currently %d domains registered\n", len(domainList))
 	for _, d := range domainList {
 		if d == domain {
+			log.Debugf("%s already in domain list, returning\n", domain)
 			return
 		}
 	}
@@ -132,8 +135,9 @@ func addToDomainList(domain string) {
 		log.Fatal(err)
 		panic(err)
 	}
+	log.Debugf("There are now %d domains registered\n", len(domainList))
 
-	autocert.HostWhitelist(domainList...)
+	m.HostPolicy = autocert.HostWhitelist(domainList...)
 }
 
 func loadDomainList() {
