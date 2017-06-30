@@ -118,6 +118,10 @@ func domainExists(domain string) bool {
 }
 
 func addToDomainList(domain string) {
+	if domain == "" {
+		log.Debug("Cannot use an empty string as a domain")
+		return
+	}
 	log.Debugf("Adding %s to domain list\n", domain)
 	log.Debugf("There are currently %d domains registered\n", len(domainList))
 	for _, d := range domainList {
