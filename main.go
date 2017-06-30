@@ -104,9 +104,7 @@ func main() {
 }
 
 func httpRedirectHandler(w http.ResponseWriter, r *http.Request) {
-	if !domainExists(r.URL.Hostname()) {
-		addToDomainList(r.URL.Hostname())
-	}
+	go addToDomainList(r.URL.Hostname())
 	http.Redirect(w, r, "https://"+r.Host+r.URL.String(), http.StatusMovedPermanently)
 }
 
