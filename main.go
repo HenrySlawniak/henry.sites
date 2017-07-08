@@ -140,6 +140,7 @@ func addToDomainList(domain string) {
 	}
 
 	m.HostPolicy = autocert.HostWhitelist(domainList...)
+	log.Noticef("Added %s to registered domains", domain)
 }
 
 func loadDomainList() {
