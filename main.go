@@ -104,8 +104,6 @@ func main() {
 }
 
 func httpRedirectHandler(w http.ResponseWriter, r *http.Request) {
-	log.Debug(r.URL.Host)
-
 	if !domainIsRegistered(r.Host) {
 		addToDomainList(r.Host)
 	}
