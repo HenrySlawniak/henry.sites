@@ -47,7 +47,9 @@ func setupRouter() {
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
 
-	go addToDomainList(r.URL.Hostname())
+	if !domainIsRegistered(r.Host) {
+		addToDomainList(r.Host)
+	}
 
 	staticFolder := "./sites/" + r.Host
 	if _, err := os.Stat(staticFolder); err != nil {

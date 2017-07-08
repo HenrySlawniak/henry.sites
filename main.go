@@ -105,11 +105,15 @@ func main() {
 
 func httpRedirectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Debug(r.URL.Host)
-	go addToDomainList(r.URL.Hostname())
+
+	if !domainIsRegistered(r.Host) {
+		addToDomainList(r.Host)
+	}
+
 	http.Redirect(w, r, "https://"+r.Host+r.URL.String(), http.StatusMovedPermanently)
 }
 
-func domainExists(domain string) bool {
+func domainIsRegistered(domain string) bool {
 	for _, d := range domainList {
 		if d == domain {
 			return true
@@ -120,14 +124,12 @@ func domainExists(domain string) bool {
 
 func addToDomainList(domain string) {
 	if domain == "" {
-		log.Debug("Cannot use an empty string as a domain")
+		log.Warn("Cannot use an empty string as a domain")
 		return
 	}
-	log.Debugf("Adding %s to domain list\n", domain)
-	log.Debugf("There are currently %d domains registered\n", len(domainList))
 	for _, d := range domainList {
 		if d == domain {
-			log.Debugf("%s already in domain list, returning\n", domain)
+			log.Noticef("%s already in domain list, returning\n", domain)
 			return
 		}
 	}
@@ -138,7 +140,6 @@ func addToDomainList(domain string) {
 		log.Fatal(err)
 		panic(err)
 	}
-	log.Debugf("There are now %d domains registered\n", len(domainList))
 
 	m.HostPolicy = autocert.HostWhitelist(domainList...)
 }
@@ -160,4 +161,6 @@ func loadDomainList() {
 	for scanner.Scan() {
 		addToDomainList(scanner.Text())
 	}
+
+	log.Noticef("There are now %d domains registered\n", len(domainList))
 }
