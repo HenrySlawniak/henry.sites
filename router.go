@@ -49,7 +49,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 
 	if !domainIsRegistered(r.Host) {
 		// Make sure we do this syncronousley
-		addToDomainList(r.Host)
+		addToDomainList(r.Host, true)
 	}
 
 	staticFolder := "./sites/" + r.Host

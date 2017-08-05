@@ -96,7 +96,7 @@ func main() {
 
 func httpRedirectHandler(w http.ResponseWriter, r *http.Request) {
 	if !domainIsRegistered(r.Host) {
-		addToDomainList(r.Host)
+		addToDomainList(r.Host, true)
 	}
 
 	http.Redirect(w, r, "https://"+r.Host+r.URL.String(), http.StatusMovedPermanently)
@@ -111,7 +111,7 @@ func domainIsRegistered(domain string) bool {
 	return false
 }
 
-func addToDomainList(domain string) {
+func addToDomainList(domain string, isNew bool) {
 	if domain == "" {
 		log.Warn("Cannot use an empty string as a domain")
 		return
@@ -131,7 +131,9 @@ func addToDomainList(domain string) {
 	}
 
 	m.HostPolicy = autocert.HostWhitelist(domainList...)
-	log.Noticef("Added %s to registered domains", domain)
+	if isNew {
+		log.Noticef("Added %s to registered domains", domain)
+	}
 }
 
 func loadDomainList() {
@@ -149,7 +151,7 @@ func loadDomainList() {
 	}
 
 	for scanner.Scan() {
-		addToDomainList(scanner.Text())
+		addToDomainList(scanner.Text(), false)
 	}
 
 	log.Noticef("There are now %d domains registered\n", len(domainList))
