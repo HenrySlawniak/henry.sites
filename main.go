@@ -40,10 +40,9 @@ var (
 	cookieSecret string
 	buildTime    string
 	commit       string
+	domainList   = []string{}
+	m            autocert.Manager
 )
-
-var domainList = []string{}
-var m autocert.Manager
 
 func init() {
 	flag.Parse()

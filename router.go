@@ -48,6 +48,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
 
 	if !domainIsRegistered(r.Host) {
+		// Make sure we do this syncronousley
 		addToDomainList(r.Host)
 	}
 
