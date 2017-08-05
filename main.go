@@ -88,14 +88,6 @@ func main() {
 		Handler:   router,
 	}
 
-	// This is awful
-	go func() {
-		time.Sleep(500 * time.Millisecond)
-		for _, d := range domainList {
-			http.Get("http://" + d)
-		}
-	}()
-
 	log.Info("Listening on :https")
 
 	http2.ConfigureServer(rootSrv, &http2.Server{})
