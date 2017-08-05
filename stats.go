@@ -21,49 +21,62 @@
 package main
 
 import (
+	"fmt"
 	"github.com/go-playground/log"
-	"github.com/gorilla/mux"
+	"net"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
+	"time"
 )
 
-var router *mux.Router
-
-func setupRouter() {
-	log.Info("Setting up router")
-	router = mux.NewRouter()
-
-	slawniakComRouter := router.Host("slawniak.com").PathPrefix("/").Name("slawniak.com").Subrouter()
-	slawniakComRouter.PathPrefix("/").HandlerFunc(indexHandler)
-
-	// This seems so wrong
-	router.Host("ifcfg.org").Name("ifcfg.org").PathPrefix("/").HandlerFunc(rootHandler)
-	router.Host("v4.ifcfg.org").Name("ifcfg.org-v4").PathPrefix("/").HandlerFunc(rootHandler)
-	router.Host("v6.ifcfg.org").Name("ifcfg.org-v6").PathPrefix("/").HandlerFunc(rootHandler)
-
-	router.PathPrefix("/").HandlerFunc(indexHandler).Name("catch-all")
-}
-
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-	path := r.URL.Path
-
-	if !domainIsRegistered(r.Host) {
-		// Make sure we do this syncronousley
-		addToDomainList(r.Host)
+func logRequest(w http.ResponseWriter, r *http.Request, bytes, responseCode int) {
+	host, _, err := net.SplitHostPort(r.Host)
+	if err != nil {
+		log.Error(err)
 	}
 
-	staticFolder := "./sites/" + r.Host
-	if _, err := os.Stat(staticFolder); err != nil {
-		staticFolder = "./client"
+	ip := r.RemoteAddr
+
+	if strings.Contains(ip, "127.0.0.1") || strings.Contains(ip, "[::1]") {
+		if r.Header.Get("X-Real-IP") != "" {
+			ip = r.Header.Get("X-Real-IP")
+			log.Debug(ip)
+		}
 	}
 
-	var n, code int
-
-	if inf, err := os.Stat(staticFolder + path); err == nil && !inf.IsDir() {
-		n, code = serveFile(w, r, staticFolder+path)
-	} else {
-		n, code = serveFile(w, r, staticFolder+"/index.html")
+	ip, _, err = net.SplitHostPort(ip)
+	if err != nil {
+		log.Error(err)
 	}
 
-	go logRequest(w, r, n, code)
+	// remote_addr - [local_time] "method host path query protocol" response_code bytes_written referer user_agent
+	logStr := fmt.Sprintf(
+		"%s - [%s] \"%s %s %s %s %s\" %d %d \"%s\" \"%s\"",
+		ip,
+		time.Now().Local().Format("02/Jan/2006:15:04:05 -0700"),
+		r.Method,
+		host,
+		r.URL.Path,
+		r.URL.RawQuery,
+		r.Proto,
+		responseCode,
+		bytes,
+		r.Referer(),
+		r.UserAgent(),
+	)
+
+	logFile := filepath.Join(".logs", host+".access.log")
+	if _, err := os.Stat(filepath.Dir(logFile)); os.IsNotExist(err) {
+		os.MkdirAll(filepath.Dir(logFile), 0755)
+	}
+
+	f, err := os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0750)
+	if err != nil {
+		log.Error(err)
+	}
+	defer f.Close()
+
+	f.WriteString(logStr + "\n")
 }

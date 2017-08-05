@@ -44,7 +44,7 @@ var sums = map[string]*fileSum{}
 
 var mu = &sync.Mutex{}
 
-func serveFile(w http.ResponseWriter, r *http.Request, path string) {
+func serveFile(w http.ResponseWriter, r *http.Request, path string) (int, int) {
 	var err error
 	if path == "./client/" {
 		path = "./client/index.html"
@@ -65,11 +65,10 @@ func serveFile(w http.ResponseWriter, r *http.Request, path string) {
 		if err != nil {
 			http.Error(w, "Could not read file", http.StatusInternalServerError)
 			log.Errorf("%s:%s\n", path, err.Error())
-			return
+			return 0, http.StatusInternalServerError
 		}
 
-		writeToResponse(w, r, content, mimeType, sum, mod)
-		return
+		return writeToResponse(w, r, content, mimeType, sum, mod)
 	}
 
 	if fileSum.Time.Add(time.Hour).Unix() > time.Now().Unix() {
@@ -77,7 +76,7 @@ func serveFile(w http.ResponseWriter, r *http.Request, path string) {
 		if err != nil {
 			http.Error(w, "Could not read file", http.StatusInternalServerError)
 			log.Errorf("%s:%s\n", path, err.Error())
-			return
+			return 0, http.StatusInternalServerError
 		}
 	} else {
 		sum = fileSum.Sum
@@ -94,21 +93,20 @@ func serveFile(w http.ResponseWriter, r *http.Request, path string) {
 
 	if r.Header.Get("If-None-Match") == sum {
 		w.WriteHeader(http.StatusNotModified)
-		return
+		return 0, http.StatusNotModified
 	}
 
 	content, sum, mod, err = readFile(path)
 	if err != nil {
 		http.Error(w, "Could not read file", http.StatusInternalServerError)
 		log.Errorf("%s:%s\n", path, err.Error())
-		return
+		return 0, http.StatusInternalServerError
 	}
 
-	writeToResponse(w, r, content, mimeType, sum, mod)
-	return
+	return writeToResponse(w, r, content, mimeType, sum, mod)
 }
 
-func writeToResponse(w http.ResponseWriter, r *http.Request, content []byte, mime, sum string, mod time.Time) {
+func writeToResponse(w http.ResponseWriter, r *http.Request, content []byte, mime, sum string, mod time.Time) (int, int) {
 	w.Header().Set("Content-Type", mime)
 	w.Header().Set("Cache-Control", "public")
 	w.Header().Set("Last-Modified", mod.Format(time.RFC1123))
@@ -116,10 +114,15 @@ func writeToResponse(w http.ResponseWriter, r *http.Request, content []byte, mim
 	w.Header().Set("ETag", sum)
 	if r.Header.Get("If-None-Match") == sum {
 		w.WriteHeader(http.StatusNotModified)
-		return
+		return 0, http.StatusNotModified
 	}
 
-	w.Write(content)
+	n, err := w.Write(content)
+	if err != nil {
+		log.Error(err)
+	}
+
+	return n, http.StatusOK
 }
 
 func readFile(path string) ([]byte, string, time.Time, error) {
