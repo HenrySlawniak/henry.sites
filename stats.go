@@ -32,9 +32,14 @@ import (
 )
 
 func logRequest(w http.ResponseWriter, r *http.Request, bytes, responseCode int) {
-	host, _, err := net.SplitHostPort(r.Host)
-	if err != nil {
-		log.Error(err)
+	host := r.Host
+	var err error
+
+	if strings.Contains(host, ":") {
+		host, _, err = net.SplitHostPort(r.Host)
+		if err != nil {
+			log.Error(err)
+		}
 	}
 
 	ip := r.RemoteAddr
