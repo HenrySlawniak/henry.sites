@@ -56,6 +56,7 @@ func main() {
 	log.Info("Starting henry.slawniak.com")
 	log.Info("Built: " + buildTime)
 	log.Info("Revision: " + commit)
+	log.Info("(c) I like me.")
 	setupRouter()
 
 	loadDomainList()
