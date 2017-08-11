@@ -6,3 +6,5 @@ download/*
 domains.txt
 .logs/
 sites/*
+go/*
+certs/*
