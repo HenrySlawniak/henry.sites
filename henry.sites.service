@@ -11,7 +11,7 @@ User=root
 WorkingDirectory=/var/herny.sites
 ExecStart=/var/henry.sites/systemd.sh
 Restart=on-abort
-KillMode=none
+KillMode=control-group
 SuccessExitStatus=0 1
 
 ProtectHome=true
