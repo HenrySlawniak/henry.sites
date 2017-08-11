@@ -1,0 +1,27 @@
+[Unit]
+Description=The henry.sites landing page
+
+Wants=network.target
+After=network.target
+
+[Service]
+Type=simple
+# This is bad, and I feel bad
+User=root
+WorkingDirectory=/var/herny.sites
+ExecStart=/var/henry.sites/systemd.sh
+Restart=on-abort
+KillMode=none
+SuccessExitStatus=0 1
+
+ProtectHome=true
+ProtectSystem=full
+PrivateDevices=true
+NoNewPrivileges=true
+PrivateTmp=true
+InaccessibleDirectories=/root /sys /srv -/opt /media -/lost+found
+ReadWriteDirectories=/var/henry.sites
+WorkingDirectory=/var/henry.sites
+
+[Install]
+WantedBy=multi-user.target
