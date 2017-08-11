@@ -5,4 +5,3 @@ download/*
 .secret
 domains.txt
 .logs/
-sites/*
