@@ -58,6 +58,7 @@ func main() {
 	log.Info("Revision: " + commit)
 	log.Info("(c) I like me.")
 	setupRouter()
+	log.Info("(c) I bet you do.")
 
 	loadDomainList()
 
