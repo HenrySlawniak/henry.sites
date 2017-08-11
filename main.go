@@ -36,12 +36,13 @@ import (
 )
 
 var (
-	devMode      = flag.Bool("dev", false, "Puts the server in developer mode, will bind to :34265 and will not autocert")
-	cookieSecret string
-	buildTime    string
-	commit       string
-	domainList   = []string{}
-	m            autocert.Manager
+	devMode            = flag.Bool("dev", false, "Puts the server in developer mode, will bind to :34265 and will not autocert")
+	accessLogInConsole = flag.Bool("console-access", false, "Whether or not to print access log lines to the console")
+	cookieSecret       string
+	buildTime          string
+	commit             string
+	domainList         = []string{}
+	m                  autocert.Manager
 )
 
 func init() {

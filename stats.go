@@ -31,6 +31,8 @@ import (
 	"time"
 )
 
+var loc, _ = time.LoadLocation("America/Chicago")
+
 func logRequest(w http.ResponseWriter, r *http.Request, bytes, responseCode int) {
 	host := r.Host
 	var err error
@@ -60,7 +62,7 @@ func logRequest(w http.ResponseWriter, r *http.Request, bytes, responseCode int)
 	logStr := fmt.Sprintf(
 		"%s - [%s] \"%s %s %s %s %s\" %d %d \"%s\" \"%s\"",
 		ip,
-		time.Now().Local().Format("02/Jan/2006:15:04:05 -0700"),
+		time.Now().In(loc).Format("02/Jan/2006:15:04:05 -0700"),
 		r.Method,
 		host,
 		r.URL.Path,
@@ -85,7 +87,7 @@ func logRequest(w http.ResponseWriter, r *http.Request, bytes, responseCode int)
 
 	f.WriteString(logStr + "\n")
 
-	logFile2 := filepath.Join(".logs", "*.access.log")
+	logFile2 := filepath.Join(".logs", "__all__.access.log")
 	if _, err := os.Stat(filepath.Dir(logFile)); os.IsNotExist(err) {
 		os.MkdirAll(filepath.Dir(logFile), 0755)
 	}
@@ -97,5 +99,9 @@ func logRequest(w http.ResponseWriter, r *http.Request, bytes, responseCode int)
 	defer f2.Close()
 
 	f2.WriteString(logStr + "\n")
+
+	if *accessLogInConsole {
+		log.Info(logStr)
+	}
 
 }
