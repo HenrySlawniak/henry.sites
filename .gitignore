@@ -8,3 +8,4 @@ domains.txt
 sites/*
 go/*
 certs/*
+henry.sites
