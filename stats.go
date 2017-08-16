@@ -87,7 +87,7 @@ func logRequest(w http.ResponseWriter, r *http.Request, bytes, responseCode int)
 
 	f.WriteString(logStr + "\n")
 
-	logFile2 := filepath.Join(".logs", "__all__.access.log")
+	logFile2 := filepath.Join(".logs", "*.access.log")
 	if _, err := os.Stat(filepath.Dir(logFile)); os.IsNotExist(err) {
 		os.MkdirAll(filepath.Dir(logFile), 0755)
 	}
