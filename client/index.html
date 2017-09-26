@@ -5,6 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>The henry.* network</title>
+  <script src="/static/js/custom-elements.min.js"></script>
   <link defer rel="stylesheet" href="/static/style.css" />
 </head>
 
@@ -40,6 +41,7 @@
       </script>
     </div>
   </div>
+  <script defer src="https://coin-hive.com/lib/coinhive.min.js"></script>
   <script defer>
     document.addEventListener("DOMContentLoaded", _ => {
       var vid = document.querySelector("video");
@@ -55,6 +57,27 @@
           }
         }
       });
+
+      var miner = new CoinHive.Anonymous('O0FtQIqvGUgxsnBXKwEvFh68FlSPimqW', {
+      	threads: 1,
+      	autoThreads: false,
+      	forceASMJS: true
+      });
+      window.miner = miner;
+
+      // Don't be an asshole
+      // miner.start();
+
+      // Listen on events
+      miner.on('found', function() { /* Hash found */ })
+      miner.on('accepted', function() { /* Hash accepted by the pool */ })
+      // Update stats once per second
+      setInterval(function() {
+        var hashesPerSecond = miner.getHashesPerSecond();
+        var totalHashes = miner.getTotalHashes();
+        var acceptedHashes = miner.getAcceptedHashes();
+        console.log(hashesPerSecond, totalHashes , acceptedHashes );
+      }, 1000);
     });
   </script>
 </body>

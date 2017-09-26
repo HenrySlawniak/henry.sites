@@ -8,8 +8,8 @@ After=network.target
 Type=simple
 # This is bad, and I feel bad
 User=root
-WorkingDirectory=/var/herny.sites
-ExecStart=/var/henry.sites/systemd.sh
+WorkingDirectory=go/src/github.com/HenrySlawniak/henry.sites/
+ExecStart=go/src/github.com/HenrySlawniak/henry.sites/systemd.sh
 Restart=on-abort
 KillMode=control-group
 SuccessExitStatus=0 1
@@ -20,8 +20,8 @@ PrivateDevices=true
 NoNewPrivileges=true
 PrivateTmp=true
 InaccessibleDirectories=/root /sys /srv -/opt /media -/lost+found
-ReadWriteDirectories=/var/henry.sites
-WorkingDirectory=/var/henry.sites
+ReadWriteDirectories=go/src/github.com/HenrySlawniak/henry.sites/
+WorkingDirectory=go/src/github.com/HenrySlawniak/henry.sites/
 
 [Install]
 WantedBy=multi-user.target
