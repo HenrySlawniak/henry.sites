@@ -117,6 +117,7 @@ func writeToResponse(w http.ResponseWriter, r *http.Request, content []byte, mim
 	w.Header().Set("Expires", mod.Add((24*365)*time.Hour).Format(time.RFC1123))
 	w.Header().Set("ETag", sum)
 	if r.Header.Get("If-None-Match") == sum {
+		go logRequest(w, r, 0, http.StatusNotModified)
 		w.WriteHeader(http.StatusNotModified)
 		return 0, http.StatusNotModified
 	}
@@ -125,6 +126,8 @@ func writeToResponse(w http.ResponseWriter, r *http.Request, content []byte, mim
 	if err != nil {
 		log.Error(err)
 	}
+
+	go logRequest(w, r, n, http.StatusOK)
 
 	return n, http.StatusOK
 }
