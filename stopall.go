@@ -25,24 +25,10 @@ import (
 	"strings"
 )
 
-// GetIP returns the remote ip of the request, by stripping off the port from the RemoteAddr
-func GetIP(r *http.Request) string {
-	split := strings.Split(r.RemoteAddr, ":")
-	ip := strings.Join(split[:len(split)-1], ":")
-	// This is bad, and I feel bad
-	ip = strings.Replace(ip, "[", "", 1)
-	ip = strings.Replace(ip, "]", "", 1)
-	return ip
+func stopAllRootHandler(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/ing"+r.URL.RequestURI(), http.StatusFound)
 }
 
-func ifcfgRootHandler(w http.ResponseWriter, r *http.Request) {
-	ip := GetIP(r)
-	w.Header().Set("Server", "ifcfg.org")
-
-	if strings.Contains(r.Header.Get("User-Agent"), "curl") || r.Header.Get("Accept") == "text/plain" {
-		w.Header().Set("Content-Type", "text/plain")
-		w.Write([]byte(ip + "\n"))
-		return
-	}
-	w.Write([]byte(ip))
+func stopAllIngHandler(w http.ResponseWriter, r *http.Request) {
+	serveFile(w, r, "stopall/client"+strings.Replace(r.URL.RequestURI(), "/ing", "", -1))
 }

@@ -9,3 +9,4 @@ sites/*
 go/*
 certs/*
 henry.sites
+stopall/client/*

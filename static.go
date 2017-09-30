@@ -50,6 +50,10 @@ func serveFile(w http.ResponseWriter, r *http.Request, path string) (int, int) {
 		path = "./client/index.html"
 	}
 
+	if path == "stopall/client/" {
+		path = "./stopall/client/index.html"
+	}
+
 	w.Header().Set("Vary", "Accept-Encoding")
 
 	var (

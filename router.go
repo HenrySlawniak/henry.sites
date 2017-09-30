@@ -37,9 +37,14 @@ func setupRouter() {
 	slawniakComRouter.PathPrefix("/").HandlerFunc(indexHandler)
 
 	// This seems so wrong
-	router.Host("ifcfg.org").Name("ifcfg.org").PathPrefix("/").HandlerFunc(rootHandler)
-	router.Host("v4.ifcfg.org").Name("ifcfg.org-v4").PathPrefix("/").HandlerFunc(rootHandler)
-	router.Host("v6.ifcfg.org").Name("ifcfg.org-v6").PathPrefix("/").HandlerFunc(rootHandler)
+	router.Host("ifcfg.org").Name("ifcfg.org").PathPrefix("/").HandlerFunc(ifcfgRootHandler)
+	router.Host("v4.ifcfg.org").Name("ifcfg.org-v4").PathPrefix("/").HandlerFunc(ifcfgRootHandler)
+	router.Host("v6.ifcfg.org").Name("ifcfg.org-v6").PathPrefix("/").HandlerFunc(ifcfgRootHandler)
+
+	router.Host("stopallthe.download").Path("/ing/provision").Handler(http.RedirectHandler("https://gist.githubusercontent.com/HenrySlawniak/c31cedaec491c68631a6f62b5d94a740/raw", http.StatusFound))
+	router.Host("stopallthe.download").Path("/ing/install-go").Handler(http.RedirectHandler("https://gist.githubusercontent.com/HenrySlawniak/1b17dc248f57016ee820a7502d7285ce/raw", http.StatusFound))
+	router.Host("stopallthe.download").Name("stopall").PathPrefix("/ing/").HandlerFunc(stopAllIngHandler)
+	router.Host("stopallthe.download").Name("stopall").PathPrefix("/").HandlerFunc(stopAllRootHandler)
 
 	router.PathPrefix("/").HandlerFunc(indexHandler).Name("catch-all")
 }
