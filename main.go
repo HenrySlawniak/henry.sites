@@ -31,6 +31,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -54,11 +55,14 @@ func init() {
 
 func main() {
 	log.Info("Starting henry.slawniak.com")
-	log.Info("Built: " + buildTime)
-	log.Info("Revision: " + commit)
-	log.Info("(c) I like me.")
+	if buildTime != "" {
+		log.Info("Built: " + buildTime)
+	}
+	if commit != "" {
+		log.Info("Revision: " + commit)
+	}
+	log.Info("Go: " + runtime.Version())
 	setupRouter()
-	log.Info("(c) I bet you do.")
 
 	loadDomainList()
 
