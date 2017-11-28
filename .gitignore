@@ -5,7 +5,6 @@ download/*
 .secret
 domains.txt
 .logs/
-sites/*
 go/*
 certs/*
 henry.sites
