@@ -9,3 +9,5 @@ go/*
 certs/*
 henry.sites
 stopall/client/*
+sites/*
+!sites/.gitkeep
