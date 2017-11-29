@@ -25,6 +25,7 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"os"
+	"strings"
 )
 
 var router *mux.Router
@@ -52,12 +53,14 @@ func setupRouter() {
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
 
-	if !domainIsRegistered(r.Host) {
+	host := strings.Split(r.Host, ":")[0]
+
+	if !domainIsRegistered(host) {
 		// Make sure we do this syncronousley
-		addToDomainList(r.Host, true)
+		addToDomainList(host, true)
 	}
 
-	staticFolder := "./sites/" + r.Host
+	staticFolder := "./sites/" + host
 	if _, err := os.Stat(staticFolder); err != nil {
 		staticFolder = "./client"
 	}
@@ -66,6 +69,8 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 
 	if inf, err := os.Stat(staticFolder + path); err == nil && !inf.IsDir() {
 		n, code = serveFile(w, r, staticFolder+path)
+	} else if inf, err := os.Stat(staticFolder + path + "/index.html"); err == nil && !inf.IsDir() {
+		n, code = serveFile(w, r, staticFolder+path+"/index.html")
 	} else {
 		n, code = serveFile(w, r, staticFolder+"/index.html")
 	}
