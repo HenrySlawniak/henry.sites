@@ -144,10 +144,20 @@ func addToDomainList(domain string, isNew bool) {
 }
 
 func loadDomainList() {
-	f, err := os.Open("domains.txt")
-	if err != nil {
-		log.Fatal(err)
-		panic(err)
+	var f *os.File
+	var err error
+	if _, err = os.Stat("domains.txt"); os.IsNotExist(err) {
+		f, err = os.Create("domains.txt")
+		if err != nil {
+			log.Fatal(err)
+			panic(err)
+		}
+	} else {
+		f, err = os.Open("domains.txt")
+		if err != nil {
+			log.Fatal(err)
+			panic(err)
+		}
 	}
 	defer f.Close()
 
