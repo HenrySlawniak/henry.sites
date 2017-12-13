@@ -54,7 +54,7 @@ func init() {
 }
 
 func main() {
-	log.Info("Starting henry.slawniak.com")
+	log.Info("Starting henry.sites")
 	if buildTime != "" {
 		log.Info("Built: " + buildTime)
 	}

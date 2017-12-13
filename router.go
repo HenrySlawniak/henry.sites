@@ -65,7 +65,8 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		staticFolder = "./client"
 	}
 
-	var n, code int
+	var n int64
+	var code int
 
 	if inf, err := os.Stat(staticFolder + path); err == nil && !inf.IsDir() {
 		n, code = serveFile(w, r, staticFolder+path)

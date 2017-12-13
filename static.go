@@ -25,11 +25,11 @@ import (
 	"fmt"
 	"github.com/go-playground/log"
 	"io/ioutil"
-	"mime"
+	// "mime"
 	"net/http"
 	"os"
-	"path/filepath"
-	"strings"
+	// "path/filepath"
+	// "strings"
 	"sync"
 	"time"
 )
@@ -44,8 +44,8 @@ var sums = map[string]*fileSum{}
 
 var mu = &sync.Mutex{}
 
-func serveFile(w http.ResponseWriter, r *http.Request, path string) (int, int) {
-	var err error
+func serveFile(w http.ResponseWriter, r *http.Request, path string) (int64, int) {
+	// var err error
 	if path == "./client/" {
 		path = "./client/index.html"
 	}
@@ -54,60 +54,70 @@ func serveFile(w http.ResponseWriter, r *http.Request, path string) (int, int) {
 		path = "./stopall/client/index.html"
 	}
 
-	w.Header().Set("Vary", "Accept-Encoding")
-
-	var (
-		sum      string
-		content  []byte
-		mod      time.Time
-		mimeType = mime.TypeByExtension(filepath.Ext(path))
-	)
-
-	fileSum := sums[path]
-	if fileSum == nil {
-		content, sum, mod, err = readFile(path)
-		if err != nil {
-			http.Error(w, "Could not read file", http.StatusInternalServerError)
-			log.Errorf("%s:%s\n", path, err.Error())
-			return 0, http.StatusInternalServerError
-		}
-
-		return writeToResponse(w, r, content, mimeType, sum, mod)
-	}
-
-	if fileSum.Time.Add(time.Hour).Unix() > time.Now().Unix() {
-		_, sum, _, err = readFile(path)
-		if err != nil {
-			http.Error(w, "Could not read file", http.StatusInternalServerError)
-			log.Errorf("%s:%s\n", path, err.Error())
-			return 0, http.StatusInternalServerError
-		}
-	} else {
-		sum = fileSum.Sum
-	}
-
-	if strings.Contains(path, ".html") {
-		// Disable the pusher for now TODO: figure out a way to do pushing per site
-		// if pusher, ok := w.(http.Pusher); ok {
-		// 	if err := pusher.Push("/static/style.css", nil); err != nil {
-		// 		log.Warnf("%v, %s, Failed to push: %v", r.URL, r.RemoteAddr, err)
-		// 	}
-		// }
-	}
-
-	if r.Header.Get("If-None-Match") == sum {
-		w.WriteHeader(http.StatusNotModified)
-		return 0, http.StatusNotModified
-	}
-
-	content, sum, mod, err = readFile(path)
+	stat, err := os.Stat(path)
 	if err != nil {
-		http.Error(w, "Could not read file", http.StatusInternalServerError)
-		log.Errorf("%s:%s\n", path, err.Error())
-		return 0, http.StatusInternalServerError
+		go logRequest(w, r, 0, http.StatusNotFound)
+		log.Error(err)
+		return 0, http.StatusNotFound
 	}
 
-	return writeToResponse(w, r, content, mimeType, sum, mod)
+	http.ServeFile(w, r, path)
+	return stat.Size(), 0
+
+	// w.Header().Set("Vary", "Accept-Encoding")
+	//
+	// var (
+	// 	sum      string
+	// 	content  []byte
+	// 	mod      time.Time
+	// 	mimeType = mime.TypeByExtension(filepath.Ext(path))
+	// )
+	//
+	// fileSum := sums[path]
+	// if fileSum == nil {
+	// 	content, sum, mod, err = readFile(path)
+	// 	if err != nil {
+	// 		http.Error(w, "Could not read file", http.StatusInternalServerError)
+	// 		log.Errorf("%s:%s\n", path, err.Error())
+	// 		return 0, http.StatusInternalServerError
+	// 	}
+	//
+	// 	return writeToResponse(w, r, content, mimeType, sum, mod)
+	// }
+	//
+	// if fileSum.Time.Add(time.Hour).Unix() > time.Now().Unix() {
+	// 	_, sum, _, err = readFile(path)
+	// 	if err != nil {
+	// 		http.Error(w, "Could not read file", http.StatusInternalServerError)
+	// 		log.Errorf("%s:%s\n", path, err.Error())
+	// 		return 0, http.StatusInternalServerError
+	// 	}
+	// } else {
+	// 	sum = fileSum.Sum
+	// }
+	//
+	// if strings.Contains(path, ".html") {
+	// 	// Disable the pusher for now TODO: figure out a way to do pushing per site
+	// 	// if pusher, ok := w.(http.Pusher); ok {
+	// 	// 	if err := pusher.Push("/static/style.css", nil); err != nil {
+	// 	// 		log.Warnf("%v, %s, Failed to push: %v", r.URL, r.RemoteAddr, err)
+	// 	// 	}
+	// 	// }
+	// }
+	//
+	// if r.Header.Get("If-None-Match") == sum {
+	// 	w.WriteHeader(http.StatusNotModified)
+	// 	return 0, http.StatusNotModified
+	// }
+	//
+	// content, sum, mod, err = readFile(path)
+	// if err != nil {
+	// 	http.Error(w, "Could not read file", http.StatusInternalServerError)
+	// 	log.Errorf("%s:%s\n", path, err.Error())
+	// 	return 0, http.StatusInternalServerError
+	// }
+	//
+	// return writeToResponse(w, r, content, mimeType, sum, mod)
 }
 
 func writeToResponse(w http.ResponseWriter, r *http.Request, content []byte, mime, sum string, mod time.Time) (int, int) {
@@ -127,7 +137,7 @@ func writeToResponse(w http.ResponseWriter, r *http.Request, content []byte, mim
 		log.Error(err)
 	}
 
-	go logRequest(w, r, n, http.StatusOK)
+	go logRequest(w, r, int64(n), http.StatusOK)
 
 	return n, http.StatusOK
 }

@@ -33,7 +33,7 @@ import (
 
 var loc, _ = time.LoadLocation("America/Chicago")
 
-func logRequest(w http.ResponseWriter, r *http.Request, bytes, responseCode int) {
+func logRequest(w http.ResponseWriter, r *http.Request, bytes int64, responseCode int) {
 	host := r.Host
 	var err error
 
