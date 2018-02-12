@@ -39,6 +39,7 @@ import (
 var (
 	devMode            = flag.Bool("dev", false, "Puts the server in developer mode, will bind to :34265 and will not autocert")
 	accessLogInConsole = flag.Bool("console-access", false, "Whether or not to print access log lines to the console")
+	listen             = flag.String("listen", ":https", "The address to listen on")
 	cookieSecret       string
 	buildTime          string
 	commit             string
@@ -66,14 +67,35 @@ func main() {
 
 	loadDomainList()
 
-	if *devMode {
-		srv := &http.Server{
-			Addr:    ":34265",
-			Handler: router,
-		}
+	httpSrv := &http.Server{
+		Addr:         ":http",
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 5 * time.Second,
+		Handler: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			w.Header().Set("Connection", "close")
+			url := "https://" + req.Host + req.URL.String()
+			http.Redirect(w, req, url, http.StatusMovedPermanently)
+		}),
+	}
+	go httpSrv.ListenAndServe()
 
-		log.Info("Listening on :34265")
-		srv.ListenAndServe()
+	tlsConf := &tls.Config{
+		MinVersion:               tls.VersionTLS12,
+		PreferServerCipherSuites: true,
+
+		CurvePreferences: []tls.CurveID{
+			tls.CurveP256,
+			tls.X25519,
+		},
+
+		CipherSuites: []uint16{
+			tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,
+			tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,
+			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+		},
 	}
 
 	m = autocert.Manager{
@@ -82,23 +104,20 @@ func main() {
 		Cache:      autocert.DirCache("certs"),
 	}
 
-	httpSrv := &http.Server{
-		Addr:    ":http",
-		Handler: http.HandlerFunc(httpRedirectHandler),
-	}
-
-	go httpSrv.ListenAndServe()
-
 	rootSrv := &http.Server{
-		Addr:      ":https",
-		TLSConfig: &tls.Config{GetCertificate: m.GetCertificate},
+		Addr:      *listen,
 		Handler:   router,
+		TLSConfig: tlsConf,
+
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  120 * time.Second,
 	}
 
-	log.Info("Listening on :https")
+	log.Infof("Listening on %s", *listen)
 
 	http2.ConfigureServer(rootSrv, &http2.Server{})
-	rootSrv.ListenAndServeTLS("", "")
+	log.Fatal(rootSrv.ListenAndServeTLS("", ""))
 }
 
 func httpRedirectHandler(w http.ResponseWriter, r *http.Request) {
