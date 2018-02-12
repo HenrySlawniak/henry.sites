@@ -1,0 +1,72 @@
+{
+	"ImportPath": "github.com/HenrySlawniak/henry.sites",
+	"GoVersion": "go1.9",
+	"GodepVersion": "v79",
+	"Deps": [
+		{
+			"ImportPath": "github.com/go-playground/ansi",
+			"Comment": "v2.1.0",
+			"Rev": "777788a9be1a7296979a999c86b251fc777077a9"
+		},
+		{
+			"ImportPath": "github.com/go-playground/log",
+			"Comment": "v5.0.0",
+			"Rev": "ff67ccffc8e83e62b8f2c63d5109e95a6bca2e11"
+		},
+		{
+			"ImportPath": "github.com/go-playground/log/handlers/console",
+			"Comment": "v5.0.0",
+			"Rev": "ff67ccffc8e83e62b8f2c63d5109e95a6bca2e11"
+		},
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Comment": "v1.6.1-10-gc0091a0",
+			"Rev": "c0091a029979286890368b4c7b301261e448e242"
+		},
+		{
+			"ImportPath": "github.com/pkg/errors",
+			"Comment": "v0.8.0-11-g30136e2",
+			"Rev": "30136e27e2ac8d167177e8a583aa4c3fea5be833"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/acme",
+			"Rev": "9de5f2eaf759b4c4550b3db39fed2e9e5f86f45c"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/acme/autocert",
+			"Rev": "9de5f2eaf759b4c4550b3db39fed2e9e5f86f45c"
+		},
+		{
+			"ImportPath": "golang.org/x/net/http2",
+			"Rev": "f5dfe339be1d06f81b22525fe34671ee7d2c8904"
+		},
+		{
+			"ImportPath": "golang.org/x/net/http2/hpack",
+			"Rev": "f5dfe339be1d06f81b22525fe34671ee7d2c8904"
+		},
+		{
+			"ImportPath": "golang.org/x/net/idna",
+			"Rev": "f5dfe339be1d06f81b22525fe34671ee7d2c8904"
+		},
+		{
+			"ImportPath": "golang.org/x/net/lex/httplex",
+			"Rev": "f5dfe339be1d06f81b22525fe34671ee7d2c8904"
+		},
+		{
+			"ImportPath": "golang.org/x/text/secure/bidirule",
+			"Rev": "4e4a3210bb54bb31f6ab2cdca2edcc0b50c420c1"
+		},
+		{
+			"ImportPath": "golang.org/x/text/transform",
+			"Rev": "4e4a3210bb54bb31f6ab2cdca2edcc0b50c420c1"
+		},
+		{
+			"ImportPath": "golang.org/x/text/unicode/bidi",
+			"Rev": "4e4a3210bb54bb31f6ab2cdca2edcc0b50c420c1"
+		},
+		{
+			"ImportPath": "golang.org/x/text/unicode/norm",
+			"Rev": "4e4a3210bb54bb31f6ab2cdca2edcc0b50c420c1"
+		}
+	]
+}

@@ -48,9 +48,9 @@ var (
 
 func init() {
 	flag.Parse()
-	cLog := console.New()
+	cLog := console.New(true)
 	cLog.SetTimestampFormat(time.RFC3339)
-	log.RegisterHandler(cLog, log.AllLevels...)
+	log.AddHandler(cLog, log.AllLevels...)
 }
 
 func main() {
