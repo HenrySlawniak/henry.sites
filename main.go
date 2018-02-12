@@ -63,9 +63,19 @@ func main() {
 		log.Info("Revision: " + commit)
 	}
 	log.Info("Go: " + runtime.Version())
-	setupRouter()
 
+	setupRouter()
 	loadDomainList()
+
+	if *devMode {
+		srv := &http.Server{
+			Addr:    ":34265",
+			Handler: router,
+		}
+
+		log.Info("Listening on :34265")
+		srv.ListenAndServe()
+	}
 
 	httpSrv := &http.Server{
 		Addr:         ":http",
@@ -79,9 +89,16 @@ func main() {
 	}
 	go httpSrv.ListenAndServe()
 
+	m = autocert.Manager{
+		Cache:      autocert.DirCache("certs"),
+		Prompt:     autocert.AcceptTOS,
+		HostPolicy: autocert.HostWhitelist(domainList...),
+	}
+
 	tlsConf := &tls.Config{
 		MinVersion:               tls.VersionTLS12,
 		PreferServerCipherSuites: true,
+		GetCertificate:           m.GetCertificate,
 
 		CurvePreferences: []tls.CurveID{
 			tls.CurveP256,
@@ -98,12 +115,6 @@ func main() {
 		},
 	}
 
-	m = autocert.Manager{
-		Prompt:     autocert.AcceptTOS,
-		HostPolicy: autocert.HostWhitelist(domainList...),
-		Cache:      autocert.DirCache("certs"),
-	}
-
 	rootSrv := &http.Server{
 		Addr:      *listen,
 		Handler:   router,
@@ -118,14 +129,6 @@ func main() {
 
 	http2.ConfigureServer(rootSrv, &http2.Server{})
 	log.Fatal(rootSrv.ListenAndServeTLS("", ""))
-}
-
-func httpRedirectHandler(w http.ResponseWriter, r *http.Request) {
-	if !domainIsRegistered(r.Host) {
-		addToDomainList(r.Host, true)
-	}
-
-	http.Redirect(w, r, "https://"+r.Host+r.URL.String(), http.StatusMovedPermanently)
 }
 
 func domainIsRegistered(domain string) bool {
