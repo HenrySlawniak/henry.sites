@@ -77,18 +77,6 @@ func main() {
 		srv.ListenAndServe()
 	}
 
-	httpSrv := &http.Server{
-		Addr:         ":http",
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 5 * time.Second,
-		Handler: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-			w.Header().Set("Connection", "close")
-			url := "https://" + req.Host + req.URL.String()
-			http.Redirect(w, req, url, http.StatusMovedPermanently)
-		}),
-	}
-	go httpSrv.ListenAndServe()
-
 	m = autocert.Manager{
 		Cache:      autocert.DirCache("certs"),
 		Prompt:     autocert.AcceptTOS,
@@ -124,6 +112,7 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
 	}
+	go http.ListenAndServe(":http", m.HTTPHandler(nil))
 
 	log.Infof("Listening on %s", *listen)
 
