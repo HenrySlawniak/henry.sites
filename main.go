@@ -26,6 +26,7 @@ import (
 	"flag"
 	"github.com/go-playground/log"
 	"github.com/go-playground/log/handlers/console"
+	"golang.org/x/crypto/acme"
 	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/net/http2"
 	"io/ioutil"
@@ -151,6 +152,19 @@ func addToDomainList(domain string, isNew bool) {
 	m.HostPolicy = autocert.HostWhitelist(domainList...)
 	if isNew {
 		log.Noticef("Added %s to registered domains", domain)
+	}
+	auth, err := m.Client.Authorize(nil, domain)
+	if err != nil {
+		log.Errorf("Error authorizing %s: %s", domain, err.Error())
+	}
+
+	if auth.Status == acme.StatusValid {
+		log.Noticef("Certificate already valid for %s", domain)
+		return
+	} else {
+		for _, challenge := range auth.Challenges {
+			log.Infof("%s challenge: %v", challenge)
+		}
 	}
 }
 
