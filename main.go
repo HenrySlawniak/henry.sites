@@ -158,14 +158,17 @@ func addToDomainList(domain string, isNew bool) {
 		log.Errorf("Error authorizing %s: %s", domain, err.Error())
 	}
 
-	if auth.Status == acme.StatusValid {
-		log.Noticef("Certificate already valid for %s", domain)
-		return
-	} else {
-		for _, challenge := range auth.Challenges {
-			log.Infof("%s challenge: %v", challenge)
+	if auth != nil {
+		if auth.Status == acme.StatusValid {
+			log.Noticef("Certificate already valid for %s", domain)
+			return
+		} else {
+			for _, challenge := range auth.Challenges {
+				log.Infof("%s challenge: %v", challenge)
+			}
 		}
 	}
+
 }
 
 func loadDomainList() {
