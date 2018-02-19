@@ -37,6 +37,7 @@ type fileSum struct {
 	Time     time.Time
 	Sum      string
 	Modified time.Time
+	Size     int
 }
 
 var sums = map[string]*fileSum{}
@@ -53,12 +54,12 @@ func serveFile(w http.ResponseWriter, r *http.Request, path string) (int64, int)
 		path = "./stopall/client/index.html"
 	}
 
-	stat, err := os.Stat(path)
-	if err != nil {
-		go logRequest(w, r, 0, http.StatusNotFound)
-		log.Error(err)
-		return 0, http.StatusNotFound
-	}
+	// stat, err := os.Stat(path)
+	// if err != nil {
+	// 	go logRequest(w, r, 0, http.StatusNotFound)
+	// 	log.Error(err)
+	// 	return 0, http.StatusNotFound
+	// }
 
 	sum, err := getFileSum(path)
 	if err != nil {
@@ -67,7 +68,7 @@ func serveFile(w http.ResponseWriter, r *http.Request, path string) (int64, int)
 		return 0, http.StatusInternalServerError
 	}
 
-	if r.Header.Get("If-None-Match") == sum {
+	if r.Header.Get("If-None-Match") == sum.Sum {
 		go logRequest(w, r, 0, http.StatusNotModified)
 		w.WriteHeader(http.StatusNotModified)
 		return 0, http.StatusNotModified
@@ -75,44 +76,44 @@ func serveFile(w http.ResponseWriter, r *http.Request, path string) (int64, int)
 
 	w.Header().Set("Content-Type", mime.TypeByExtension(filepath.Ext(path)))
 	w.Header().Set("Cache-Control", "public")
-	w.Header().Set("Last-Modified", stat.ModTime().Format(time.RFC1123))
-	w.Header().Set("Expires", stat.ModTime().Add((24*365)*time.Hour).Format(time.RFC1123))
-	r.Header.Set("E-Tag", sum)
+	w.Header().Set("Last-Modified", sum.Time.Format(time.RFC1123))
+	w.Header().Set("Expires", sum.Time.Add(1*time.Hour).Format(time.RFC1123))
+	r.Header.Set("E-Tag", sum.Sum)
 
 	http.ServeFile(w, r, path)
-	return stat.Size(), 0
+	return int64(sum.Size), 0
 }
 
-func getFileSum(path string) (string, error) {
+func getFileSum(path string) (*fileSum, error) {
 	sum := sums[path]
 	if sum != nil {
 		if sum.Time.Add(15*time.Minute).Unix() > time.Now().Unix() {
 			return generateAndCacheSum(path)
 		} else {
-			return sum.Sum, nil
+			return sum, nil
 		}
 	} else {
 		return generateAndCacheSum(path)
 	}
 }
 
-func generateAndCacheSum(path string) (string, error) {
+func generateAndCacheSum(path string) (*fileSum, error) {
 	mu.Lock()
 	defer mu.Unlock()
 	f, err := os.Open(path)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer f.Close()
 
 	stat, err := f.Stat()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	cont, err := readFile(path)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	summer := sha1.New()
@@ -122,10 +123,11 @@ func generateAndCacheSum(path string) (string, error) {
 		Time:     time.Now(),
 		Sum:      fmt.Sprintf("sha1-%x", summer.Sum(nil)),
 		Modified: stat.ModTime(),
+		Size:     len(cont),
 	}
 
 	sums[path] = sum
-	return sum.Sum, nil
+	return sum, nil
 }
 
 func readFile(path string) ([]byte, error) {
