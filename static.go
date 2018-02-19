@@ -21,15 +21,14 @@
 package main
 
 import (
-	"crypto/md5"
+	"crypto/sha1"
 	"fmt"
 	"github.com/go-playground/log"
 	"io/ioutil"
-	// "mime"
+	"mime"
 	"net/http"
 	"os"
-	// "path/filepath"
-	// "strings"
+	"path/filepath"
 	"sync"
 	"time"
 )
@@ -61,113 +60,85 @@ func serveFile(w http.ResponseWriter, r *http.Request, path string) (int64, int)
 		return 0, http.StatusNotFound
 	}
 
-	http.ServeFile(w, r, path)
-	return stat.Size(), 0
+	sum, err := getFileSum(path)
+	if err != nil {
+		go logRequest(w, r, 0, http.StatusInternalServerError)
+		log.Error(err)
+		return 0, http.StatusInternalServerError
+	}
 
-	// w.Header().Set("Vary", "Accept-Encoding")
-	//
-	// var (
-	// 	sum      string
-	// 	content  []byte
-	// 	mod      time.Time
-	// 	mimeType = mime.TypeByExtension(filepath.Ext(path))
-	// )
-	//
-	// fileSum := sums[path]
-	// if fileSum == nil {
-	// 	content, sum, mod, err = readFile(path)
-	// 	if err != nil {
-	// 		http.Error(w, "Could not read file", http.StatusInternalServerError)
-	// 		log.Errorf("%s:%s\n", path, err.Error())
-	// 		return 0, http.StatusInternalServerError
-	// 	}
-	//
-	// 	return writeToResponse(w, r, content, mimeType, sum, mod)
-	// }
-	//
-	// if fileSum.Time.Add(time.Hour).Unix() > time.Now().Unix() {
-	// 	_, sum, _, err = readFile(path)
-	// 	if err != nil {
-	// 		http.Error(w, "Could not read file", http.StatusInternalServerError)
-	// 		log.Errorf("%s:%s\n", path, err.Error())
-	// 		return 0, http.StatusInternalServerError
-	// 	}
-	// } else {
-	// 	sum = fileSum.Sum
-	// }
-	//
-	// if strings.Contains(path, ".html") {
-	// 	// Disable the pusher for now TODO: figure out a way to do pushing per site
-	// 	// if pusher, ok := w.(http.Pusher); ok {
-	// 	// 	if err := pusher.Push("/static/style.css", nil); err != nil {
-	// 	// 		log.Warnf("%v, %s, Failed to push: %v", r.URL, r.RemoteAddr, err)
-	// 	// 	}
-	// 	// }
-	// }
-	//
-	// if r.Header.Get("If-None-Match") == sum {
-	// 	w.WriteHeader(http.StatusNotModified)
-	// 	return 0, http.StatusNotModified
-	// }
-	//
-	// content, sum, mod, err = readFile(path)
-	// if err != nil {
-	// 	http.Error(w, "Could not read file", http.StatusInternalServerError)
-	// 	log.Errorf("%s:%s\n", path, err.Error())
-	// 	return 0, http.StatusInternalServerError
-	// }
-	//
-	// return writeToResponse(w, r, content, mimeType, sum, mod)
-}
-
-func writeToResponse(w http.ResponseWriter, r *http.Request, content []byte, mime, sum string, mod time.Time) (int, int) {
-	w.Header().Set("Content-Type", mime)
-	w.Header().Set("Cache-Control", "public")
-	w.Header().Set("Last-Modified", mod.Format(time.RFC1123))
-	w.Header().Set("Expires", mod.Add((24*365)*time.Hour).Format(time.RFC1123))
-	w.Header().Set("ETag", sum)
 	if r.Header.Get("If-None-Match") == sum {
 		go logRequest(w, r, 0, http.StatusNotModified)
 		w.WriteHeader(http.StatusNotModified)
 		return 0, http.StatusNotModified
 	}
 
-	n, err := w.Write(content)
-	if err != nil {
-		log.Error(err)
-	}
+	w.Header().Set("Content-Type", mime.TypeByExtension(filepath.Ext(path)))
+	w.Header().Set("Cache-Control", "public")
+	w.Header().Set("Last-Modified", stat.ModTime().Format(time.RFC1123))
+	w.Header().Set("Expires", stat.ModTime().Add((24*365)*time.Hour).Format(time.RFC1123))
+	r.Header.Set("E-Tag", sum)
 
-	go logRequest(w, r, int64(n), http.StatusOK)
-
-	return n, http.StatusOK
+	http.ServeFile(w, r, path)
+	return stat.Size(), 0
 }
 
-func readFile(path string) ([]byte, string, time.Time, error) {
+func getFileSum(path string) (string, error) {
+	sum := sums[path]
+	if sum != nil {
+		if sum.Time.Add(15*time.Minute).Unix() > time.Now().Unix() {
+			return generateAndCacheSum(path)
+		} else {
+			return sum.Sum, nil
+		}
+	} else {
+		return generateAndCacheSum(path)
+	}
+}
+
+func generateAndCacheSum(path string) (string, error) {
 	mu.Lock()
 	defer mu.Unlock()
 	f, err := os.Open(path)
 	if err != nil {
-		return nil, "", time.Now(), err
+		return "", err
 	}
 	defer f.Close()
 
-	stat, err := os.Stat(path)
+	stat, err := f.Stat()
 	if err != nil {
-		return nil, "", time.Now(), err
+		return "", err
 	}
 
-	cont, err := ioutil.ReadAll(f)
+	cont, err := readFile(path)
 	if err != nil {
-		return nil, "", time.Now(), err
+		return "", err
 	}
 
-	sum := fmt.Sprintf("%x", md5.Sum(cont))
+	summer := sha1.New()
+	summer.Write(cont)
 
-	sums[path] = &fileSum{
+	sum := &fileSum{
 		Time:     time.Now(),
-		Sum:      sum,
+		Sum:      fmt.Sprintf("sha1-%x", summer.Sum(nil)),
 		Modified: stat.ModTime(),
 	}
 
-	return cont, sum, stat.ModTime(), nil
+	sums[path] = sum
+	return sum.Sum, nil
+}
+
+func readFile(path string) ([]byte, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	cont, err := ioutil.ReadAll(f)
+	if err != nil {
+		return nil, err
+	}
+
+	return cont, nil
 }
