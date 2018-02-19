@@ -78,7 +78,7 @@ func serveFile(w http.ResponseWriter, r *http.Request, path string) (int64, int)
 	w.Header().Set("Cache-Control", "public")
 	w.Header().Set("Last-Modified", sum.Time.Format(time.RFC1123))
 	w.Header().Set("Expires", sum.Time.Add(1*time.Hour).Format(time.RFC1123))
-	r.Header.Set("E-Tag", sum.Sum)
+	w.Header().Set("ETag", sum.Sum)
 
 	http.ServeFile(w, r, path)
 	return int64(sum.Size), 0
