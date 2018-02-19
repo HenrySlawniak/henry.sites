@@ -66,7 +66,6 @@ func main() {
 	log.Info("Go: " + runtime.Version())
 
 	setupRouter()
-	loadDomainList()
 
 	if *devMode {
 		srv := &http.Server{
@@ -79,10 +78,10 @@ func main() {
 	}
 
 	m = autocert.Manager{
-		Cache:      autocert.DirCache("certs"),
-		Prompt:     autocert.AcceptTOS,
-		HostPolicy: autocert.HostWhitelist(domainList...),
+		Cache:  autocert.DirCache("certs"),
+		Prompt: autocert.AcceptTOS,
 	}
+	loadDomainList()
 
 	tlsConf := &tls.Config{
 		MinVersion:               tls.VersionTLS12,
@@ -113,7 +112,7 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
 	}
-	go http.ListenAndServe(":http", m.HTTPHandler(nil))
+	go http.ListenAndServe(":http", m.HTTPHandler(router))
 
 	log.Infof("Listening on %s", *listen)
 
@@ -153,22 +152,8 @@ func addToDomainList(domain string, isNew bool) {
 	if isNew {
 		log.Noticef("Added %s to registered domains", domain)
 	}
-	auth, err := m.Client.Authorize(nil, domain)
-	if err != nil {
-		log.Errorf("Error authorizing %s: %s", domain, err.Error())
-	}
 
-	if auth != nil {
-		if auth.Status == acme.StatusValid {
-			log.Noticef("Certificate already valid for %s", domain)
-			return
-		} else {
-			for _, challenge := range auth.Challenges {
-				log.Infof("%s challenge: %v", challenge)
-			}
-		}
-	}
-
+	acme.RateLimit(err)
 }
 
 func loadDomainList() {
