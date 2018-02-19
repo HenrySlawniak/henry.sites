@@ -112,7 +112,12 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
 	}
-	go http.ListenAndServe(":http", m.HTTPHandler(router))
+	go http.ListenAndServe(":http", m.HTTPHandler(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		addToDomainList(req.Host, !domainIsRegistered(req.Host))
+		w.Header().Set("Connection", "close")
+		url := "https://" + req.Host + req.URL.String()
+		http.Redirect(w, req, url, http.StatusMovedPermanently)
+	})))
 
 	log.Infof("Listening on %s", *listen)
 
