@@ -68,17 +68,17 @@ func serveFile(w http.ResponseWriter, r *http.Request, path string) (int64, int)
 		return 0, http.StatusInternalServerError
 	}
 
-	if r.Header.Get("If-None-Match") == sum.Sum {
-		go logRequest(w, r, 0, http.StatusNotModified)
-		w.WriteHeader(http.StatusNotModified)
-		return 0, http.StatusNotModified
-	}
-
 	w.Header().Set("Content-Type", mime.TypeByExtension(filepath.Ext(path)))
 	w.Header().Set("Cache-Control", "public")
 	w.Header().Set("Last-Modified", sum.Time.Format(time.RFC1123))
 	w.Header().Set("Expires", sum.Time.Add(1*time.Hour).Format(time.RFC1123))
 	w.Header().Set("ETag", sum.Sum)
+
+	if r.Header.Get("If-None-Match") == sum.Sum {
+		go logRequest(w, r, 0, http.StatusNotModified)
+		w.WriteHeader(http.StatusNotModified)
+		return 0, http.StatusNotModified
+	}
 
 	http.ServeFile(w, r, path)
 	return int64(sum.Size), 0
