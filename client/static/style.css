@@ -12,6 +12,7 @@ body {
   color: #fff;
   font-family: 'Raleway', sans-serif;
   font-size: large;
+  justify-content: space-around;
 }
 
 html {
